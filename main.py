@@ -1,7 +1,6 @@
 from lpd8.lpd8 import LPD8
 from lpd8.programs import Programs
 from lpd8.pads import Pad, Pads
-from lpd8.knobs import Knobs
 from osc import Osc_Interface
 from actions import Actions
 from time import sleep
@@ -13,12 +12,12 @@ actions = Actions(lpd8, osc)
 def configure_lpd8():
     """
     Configure pads on LPD8 and starts controller
-    As we play with kind of virtual banks, all stacked on PGM 4, knobs will be defined in actions class
+    As we play with kind of virtual banks, all stacked on PGM 4, knobs will be defined in Actions class
     """
 
-    # Exit pad is PAD 5 (upper left), assigned to PGMP 1 to avoid unwanted end of looping section
-    lpd8.set_pad_mode(Programs.PGM_1, Pads.PAD_5, Pad.PUSH_MODE)
-    lpd8.subscribe(actions, actions.exit_running, Programs.PGM_1, LPD8.NOTE_ON, Pads.PAD_5)
+    # Exit pad is PAD  (upper right)
+    lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_8, Pad.PUSH_MODE)
+    lpd8.subscribe(actions, actions.exit_running, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_8)
 
     # All actions are assigned to PGM 4 as this is the starting program on LPD8
     # PAD 5 will control oscillator 1, PAD 1 will control oscillator 2
@@ -76,6 +75,11 @@ if __name__ == '__main__':
     # We shutdown any running oscillator on SuperCollider
     osc.send('off', 0)
     osc.send('off', 1)
+
+    # We clean up pads state
+    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_1, Pad.OFF)
+    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_5, Pad.OFF)
+    lpd8.pad_update()
 
     # As we exit the loop, we tidy up running threads
     osc.stop()

@@ -1,6 +1,7 @@
 from lpd8.lpd8 import LPD8
 from lpd8.programs import Programs
 from lpd8.pads import Pad, Pads
+from lpd8.knobs import Knobs
 from osc import Osc_Interface
 from actions import Actions
 from time import sleep
@@ -29,6 +30,18 @@ def configure_lpd8():
     lpd8.subscribe(actions, actions.on_off, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_1)
     lpd8.subscribe(actions, actions.on_off, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_5)
 
+    # PAD 6 and PAD 2 activate bank 2 control values and ranges
+    lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_2, Pad.SWITCH_MODE)
+    lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_6, Pad.SWITCH_MODE)
+    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_2, Pad.OFF)
+    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_6, Pad.OFF)
+    lpd8.subscribe(actions, actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_2)
+    lpd8.subscribe(actions, actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_6)
+
+    # All knobs send control information to SuperCollider and are not sticky
+    lpd8.subscribe(actions, actions.control_osc, Programs.PGM_4, LPD8.CTRL, Knobs.ALL_KNOBS)
+    lpd8.set_not_sticky_knob(Programs.PGM_4, Knobs.ALL_KNOBS)
+
     # Update pad states and start pad process
     lpd8.pad_update()
     lpd8.start()
@@ -41,29 +54,19 @@ def configure_osc():
     osc.add_handler('beat', actions.beats)
     osc.start()
 
-"""
-lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_1, 30, 180, steps=160)
-lpd8.set_knob_value(Programs.PGM_4, Knobs.KNOB_1, DEFAULT_BPM)
-lpd8.set_not_sticky_knob(Programs.PGM_4, Knobs.KNOB_1)
-lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_5, Pad.ON)
-lpd8.subscribe(metronome, metronome.set_bpm, Programs.PGM_4, LPD8.CTRL, Knobs.KNOB_1)
-lpd8.subscribe(w_bpm, w_bpm.bpm_update, Programs.PGM_4, LPD8.CTRL, Knobs.KNOB_1)
-lpd8.subscribe(metronome, metronome.pause, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_5)
-lpd8.pad_update()
-lpd8.start()
-osc.start()
-metronome.start()
-"""
-
 if __name__ == '__main__':
 
     # Configure LPD8 controller and try to start it
     configure_lpd8()
 
     # We check if LPD8 controller could be started. Only then we will start the loop and initiate the OSC server
+    # We also load initial bank for knobs interactions and initialize oscillators default values
     running = lpd8.is_running()
     if running:
         configure_osc()
+        actions.load_bank(0, 0)
+        actions.load_bank(0, 1)
+        actions.send_init()
 
     # Runs the forever loop
     while running:
@@ -79,6 +82,8 @@ if __name__ == '__main__':
     # We clean up pads state
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_1, Pad.OFF)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_5, Pad.OFF)
+    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_2, Pad.OFF)
+    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_6, Pad.OFF)
     lpd8.pad_update()
 
     # As we exit the loop, we tidy up running threads

@@ -38,6 +38,11 @@ def configure_lpd8():
     lpd8.subscribe(actions, actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_2)
     lpd8.subscribe(actions, actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_6)
 
+    # PAD 7 activates bank 3 control values and ranges
+    lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_7, Pad.SWITCH_MODE)
+    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_7, Pad.OFF)
+    lpd8.subscribe(actions, actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_7)
+
     # All knobs send control information to SuperCollider and are not sticky
     lpd8.subscribe(actions, actions.control_osc, Programs.PGM_4, LPD8.CTRL, Knobs.ALL_KNOBS)
     lpd8.set_not_sticky_knob(Programs.PGM_4, Knobs.ALL_KNOBS)
@@ -84,6 +89,7 @@ if __name__ == '__main__':
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_5, Pad.OFF)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_2, Pad.OFF)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_6, Pad.OFF)
+    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_7, Pad.OFF)
     lpd8.pad_update()
 
     # As we exit the loop, we tidy up running threads

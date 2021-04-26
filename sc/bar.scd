@@ -14,17 +14,27 @@ s.boot;
 //   * swwep_time : the percentage of total sound time used for the sweep
 //
 SynthDef(\squared_sin, {
-	arg note=60, detune=0, vol=1, harmonics=1, duty=0.5, attack=0.1, release=1, sweep=0, sweep_time=0;
+	arg note=60, detune=0, vol=1,
+	harmonics=1, duty=0.5,
+	attack=0.1, release=1,
+	sweep=0, sweep_time=0,
+	feed_in=nil, feed_out=nil, mod_index=0;
+	var modulator = 0;
 	var sweep_line = Line.kr(1 + sweep, 1, sweep_time * (attack + release));
 	var freq = (1 + detune) * note.midicps;
 	var env = EnvGen.ar(Env.perc(attack, release), doneAction:Done.freeSelf);
-	var signal = {
+	var signal;
+	if(feed_in.notNil, modulator = mod_index * In.ar(feed_in, 1));
+	signal = {
 		(1..50).sum {
 			arg i;
-			SinOsc.ar(freq * sweep_line * i , -0.5pi, -2 * InRange.kr(i, 1, harmonics) * vol / (i * pi) * (pi * duty * i).sin);
+			SinOsc.ar(freq * (sweep_line * i + modulator)
+				, -0.5pi, -2 * InRange.kr(i, 1, harmonics) * vol / (i * pi) * (pi * duty * i).sin);
 		}
 	};
-	Out.ar(0, env * (duty * vol + signal));
+	signal = env * (duty * vol + signal);
+	Out.ar(feed_out, signal);
+	Out.ar(0, signal);
 }).add;
 )
 
@@ -40,6 +50,7 @@ SynthDef(\squared_sin, {
 ~release = [1, 1];
 ~sweep = [0, 0];
 ~sweep_time = [0, 0];
+~mod_index = [0, 0];
 )
 
 // Make some pulsating synth from synth definitions
@@ -54,7 +65,10 @@ SynthDef(\squared_sin, {
 	\attack, Pfunc({ ~attack[0] }),
 	\release, Pfunc({ ~release[0] }),
 	\sweep,  Pfunc({ ~sweep[0] }),
-	\sweep_time,  Pfunc({ ~sweep_time[0] }),
+	\sweep_time, Pfunc({ ~sweep_time[0] }),
+	\feed_in, 10,
+	\feed_out, 20,
+	\mod_index, Pfunc({ ~mod_index[0] }),
 	\dur, Pfunc({ ~attack[0] + ~release[0] }),
 	\osc, Pfunc({~oscServer.sendMsg("/beat", 1) })
 ).play(),
@@ -69,6 +83,9 @@ Pbind(
 	\release, Pfunc({ ~release[1] }),
 	\sweep,  Pfunc({ ~sweep[1] }),
 	\sweep_time,  Pfunc({ ~sweep_time[1] }),
+	\feed_in, 20,
+	\feed_out, 10,
+	\mod_index, Pfunc({ ~mod_index[1] }),
 	\dur, Pfunc({ ~attack[1] + ~release[1] }),
 	\osc, Pfunc({ ~oscServer.sendMsg("/beat", 2) })
 ).play()];
@@ -99,6 +116,7 @@ OSCdef.new(\control, {
 	if(msg[1] == 0 && msg[2] == 6, { ~detune[1] = msg[3] });
 	if(msg[1] == 0 && msg[2] == 7, { ~harmonics[1] = msg[3] });
 	if(msg[1] == 0 && msg[2] == 8, { ~duty[1] = msg[3] });
+	// BANK 2: attack, release, sweep, seep time
 	if(msg[1] == 1 && msg[2] == 1, { ~attack[0] = msg[3] });
 	if(msg[1] == 1 && msg[2] == 2, { ~release[0] = msg[3] });
 	if(msg[1] == 1 && msg[2] == 3, { ~sweep[0] = msg[3] });
@@ -107,5 +125,8 @@ OSCdef.new(\control, {
 	if(msg[1] == 1 && msg[2] == 6, { ~release[1] = msg[3] });
 	if(msg[1] == 1 && msg[2] == 7, { ~sweep[1] = msg[3] });
 	if(msg[1] == 1 && msg[2] == 8, { ~sweep_time[1] = msg[3] });
+	// BANK 3: feedback
+	if(msg[1] == 2 && msg[2] == 1, { ~mod_index[0] = msg[3] });
+	if(msg[1] == 2 && msg[2] == 5, { ~mod_index[1] = msg[3] });
 }, '/control');
 )

@@ -1,6 +1,6 @@
 s.boot;
 (
-// A synthdef that allows to grow an original sine wave to a full blown square wave with up to 50 harmonics
+// A SynthDef that allows to grow an original sine wave to a full blown square wave with up to 50 harmonics
 // This synth also allows to control the duty cycle of the formed square wave
 // Parameters:
 //   * note           : the midi note to play
@@ -42,19 +42,35 @@ SynthDef(\squared_sin, {
 	Out.ar(output_channel, signal);
 }).add;
 
+// A SynthDef that allows filtering of the generated signal
+// Parameters:
+//   * input_channel  : the channel number of the input signal before filtering
+//   * output_channel : the channel number of the output signal after filtering
+//
 SynthDef(\filter, {
-	arg input_channel=10, output_channel=11;
+	arg input_channel=10, output_channel=12;
 	Out.ar(output_channel, In.ar(input_channel, 1));
 }).add;
 
+// A SynthDef that introduces a delay of the generated signal
+// Parameters:
+//   * input_channel  : the channel number of the input signal before delaying
+//   * output_channel : the channel number of the output signal after delaying
+//
 SynthDef(\delay, {
-	arg input_channel=11, output_channel=20;
+	arg input_channel=12, output_channel=20;
 	Out.ar(output_channel, In.ar(input_channel, 1));
 }).add;
 
+// A SynthDef that ouputs final sound and allows master level and balance controls
+// Parameters:
+//   * input_channel : the channel number at the end of synth and effects chain
+//   * vol           : master volume control
+//   * bal           : master balance (-1: left, 1: right)
+//
 SynthDef(\mixer, {
-	arg input_channel=20, bal=0;
-	Out.ar(0, Pan2.ar(In.ar(input_channel, 1), bal));
+	arg input_channel=20, vol=0.5, bal=0;
+	Out.ar(0, Pan2.ar(vol * In.ar(input_channel, 1), bal));
 }).add;
 
 // Set groups and their precedence
@@ -67,6 +83,10 @@ SynthDef(\mixer, {
 ~filter = Synth(\filter, target:~filterGroup);
 ~delay = Synth(\delay, target:~delayGroup);
 ~mixer = Synth(\mixer, target:~outputGroup);
+
+// Default params for mixer module
+~master_volume = 0.5;
+~master_balance = 0;
 
 // Default params for the oscillator synths
 ~play = [false, false];
@@ -160,10 +180,12 @@ OSCdef.new(\control, {
 	if(msg[1] == 1 && msg[2] == 6, { ~release[1] = msg[3] });
 	if(msg[1] == 1 && msg[2] == 7, { ~sweep[1] = msg[3] });
 	if(msg[1] == 1 && msg[2] == 8, { ~sweep_time[1] = msg[3] });
-	// BANK 3 full): feedback, volume
+	// BANK 3 full): feedback, volume, master volume, master balance
 	if(msg[1] == 2 && msg[2] == 1, { ~mod_index[0] = msg[3] });
 	if(msg[1] == 2 && msg[2] == 2, { ~vol[0] = msg[3] });
+	if(msg[1] == 2 && msg[2] == 3, { ~master_volume = msg[3]; ~mixer.set(\vol, ~master_volume) });
 	if(msg[1] == 2 && msg[2] == 5, { ~mod_index[1] = msg[3] });
 	if(msg[1] == 2 && msg[2] == 6, { ~vol[1] = msg[3] });
+	if(msg[1] == 2 && msg[2] == 7, { ~master_balance = msg[3]; ~mixer.set(\bal, ~master_balance) });
 }, '/control');
 )

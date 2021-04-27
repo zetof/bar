@@ -34,11 +34,11 @@ class Actions:
         {
             Knobs.KNOB_1: 0,     # osc1 - feedback
             Knobs.KNOB_2: 0.5,   # osc1 - volume
-            Knobs.KNOB_3: 0,     # osc1 - ?
+            Knobs.KNOB_3: 0.5,   # master volume
             Knobs.KNOB_4: 0,     # osc1 - ?
             Knobs.KNOB_5: 0,     # osc2 - feedback
             Knobs.KNOB_6: 0.5,   # osc2 - volume
-            Knobs.KNOB_7: 0,     # osc2 - ?
+            Knobs.KNOB_7: 0,     # master balance
             Knobs.KNOB_8: 0      # osc2 - ?
         }
     ]
@@ -126,14 +126,14 @@ class Actions:
         elif bank == 1:
             # Set limits for oscillator 1
             if osc == 0:
-                self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_1, 0.01, 1, is_int=False)
+                self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_1, 0.01, 5, is_int=False)
                 self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_2, 0.1, 5, is_int=False)
                 self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_3, 0, 0.5, is_int=False)
                 self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_4, 0, 1, is_int=False)
 
             # Set limits for oscillator 2
             elif osc == 1:
-                self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_5, 0.01, 1, is_int=False)
+                self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_5, 0.01, 5, is_int=False)
                 self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_6, 0.1, 5, is_int=False)
                 self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_7, 0, 0.5, is_int=False)
                 self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_8, 0, 1, is_int=False)
@@ -142,8 +142,10 @@ class Actions:
         elif bank == 2:
             self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_1, 0, 100, is_int=False)
             self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_2, 0, 2, is_int=False)
+            self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_3, 0, 1, is_int=False)
             self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_5, 0, 100, is_int=False)
             self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_6, 0, 2, is_int=False)
+            self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_7, -1, 1, is_int=False)
 
         # Load saved values for current bank for oscillator 1
         if osc == 0:

@@ -12,6 +12,9 @@ s.boot;
 //   * release    : the release time of the evelope
 //   * sweep      : the percentage of played frequency that is added to the original freaquency to start a sweep
 //   * swwep_time : the percentage of total sound time used for the sweep
+//   * feed_in    : channel number for incoming feedback signal
+//   * feed_out   : channel number for outgoing feedback signal
+//   * mod_index  : modulation index
 //
 SynthDef(\squared_sin, {
 	arg note=60, detune=0, vol=1,
@@ -36,10 +39,8 @@ SynthDef(\squared_sin, {
 	Out.ar(feed_out, signal);
 	Out.ar(0, signal);
 }).add;
-)
 
-// Default params
-(
+// Default params for the synths
 ~play = [false, false];
 ~note = [60, 60];
 ~detune = [0, 0];
@@ -51,10 +52,9 @@ SynthDef(\squared_sin, {
 ~sweep = [0, 0];
 ~sweep_time = [0, 0];
 ~mod_index = [0, 0];
-)
 
-// Make some pulsating synth from synth definitions
-(
+// Make two pulsating synths from synth definition, all elements are adjustable from the outside world
+// Each pulsating synth send an OSC message at start time, to allow a synchronization with the outside world
 ~osc = [Pbind(
 	\instrument, \squared_sin,
 	\note, Pfunc({ ~note[0] }, inf),
@@ -91,23 +91,26 @@ Pbind(
 ).play()];
 ~osc[0].stop;
 ~osc[1].stop;
-)
 
-// OSC Controls
-(
 // OSC address of pilot program and OSC event driver
 ~oscServer = NetAddr("127.0.0.1", 57130);
+
+// Starts a synth
 OSCdef.new(\on, {
 	arg msg;
 	~osc[msg[1]].play;
 }, '/on');
+
+// Stops a synth
 OSCdef.new(\off, {
 	arg msg;
 	~osc[msg[1]].stop;
 }, '/off');
+
+// All knobs controls, split into bank effects (see LPD8 python program for more explanations)
 OSCdef.new(\control, {
 	arg msg;
-	// BANK 1: note, harmonics, duty, vol
+	// BANK 1 (split): note, harmonics, duty, vol
 	if(msg[1] == 0 && msg[2] == 1, { ~note[0] = msg[3] });
 	if(msg[1] == 0 && msg[2] == 2, { ~detune[0] = msg[3] });
 	if(msg[1] == 0 && msg[2] == 3, { ~harmonics[0] = msg[3] });
@@ -116,7 +119,7 @@ OSCdef.new(\control, {
 	if(msg[1] == 0 && msg[2] == 6, { ~detune[1] = msg[3] });
 	if(msg[1] == 0 && msg[2] == 7, { ~harmonics[1] = msg[3] });
 	if(msg[1] == 0 && msg[2] == 8, { ~duty[1] = msg[3] });
-	// BANK 2: attack, release, sweep, seep time
+	// BANK 2 (split): attack, release, sweep, seep time
 	if(msg[1] == 1 && msg[2] == 1, { ~attack[0] = msg[3] });
 	if(msg[1] == 1 && msg[2] == 2, { ~release[0] = msg[3] });
 	if(msg[1] == 1 && msg[2] == 3, { ~sweep[0] = msg[3] });
@@ -125,7 +128,7 @@ OSCdef.new(\control, {
 	if(msg[1] == 1 && msg[2] == 6, { ~release[1] = msg[3] });
 	if(msg[1] == 1 && msg[2] == 7, { ~sweep[1] = msg[3] });
 	if(msg[1] == 1 && msg[2] == 8, { ~sweep_time[1] = msg[3] });
-	// BANK 3: feedback
+	// BANK 3 full): feedback
 	if(msg[1] == 2 && msg[2] == 1, { ~mod_index[0] = msg[3] });
 	if(msg[1] == 2 && msg[2] == 5, { ~mod_index[1] = msg[3] });
 }, '/control');

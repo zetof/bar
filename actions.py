@@ -32,14 +32,14 @@ class Actions:
             Knobs.KNOB_8: 0.5    # osc2 - sweep_time
         },
         {
-            Knobs.KNOB_1: 0,  # osc1 - attack
-            Knobs.KNOB_2: 0,  # osc1 - release
-            Knobs.KNOB_3: 0,  # osc1 - sweep
-            Knobs.KNOB_4: 0,  # osc1 - sweep_time
-            Knobs.KNOB_5: 0,  # osc2 - attack
-            Knobs.KNOB_6: 0,  # osc2 - release
-            Knobs.KNOB_7: 0,  # osc2 - sweep
-            Knobs.KNOB_8: 0  # osc2 - sweep_time
+            Knobs.KNOB_1: 0,     # osc1 - feedback
+            Knobs.KNOB_2: 0.5,   # osc1 - volume
+            Knobs.KNOB_3: 0,     # osc1 - ?
+            Knobs.KNOB_4: 0,     # osc1 - ?
+            Knobs.KNOB_5: 0,     # osc2 - feedback
+            Knobs.KNOB_6: 0.5,   # osc2 - volume
+            Knobs.KNOB_7: 0,     # osc2 - ?
+            Knobs.KNOB_8: 0      # osc2 - ?
         }
     ]
 
@@ -141,7 +141,9 @@ class Actions:
         # Set limits for bank 2
         elif bank == 2:
             self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_1, 0, 100, is_int=False)
+            self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_2, 0, 2, is_int=False)
             self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_5, 0, 100, is_int=False)
+            self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_6, 0, 2, is_int=False)
 
         # Load saved values for current bank for oscillator 1
         if osc == 0:

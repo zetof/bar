@@ -84,6 +84,9 @@ SynthDef(\mixer, {
 ~delay = Synth(\delay, target:~delayGroup);
 ~mixer = Synth(\mixer, target:~outputGroup);
 
+// Master metronome
+~metronome = TempoClock.new;
+
 // Default params for mixer module
 ~master_volume = 0.5;
 ~master_balance = 0;
@@ -110,10 +113,10 @@ SynthDef(\mixer, {
 	\vol,  Pfunc({ ~vol[0] }),
 	\harmonics, Pfunc({ ~harmonics[0] }),
 	\duty, Pfunc({ ~duty[0] }),
-	\attack, Pfunc({ ~attack[0] }),
-	\release, Pfunc({ ~release[0] }),
+	\attack, Pfunc({ ~attack[0] / ~metronome.tempo }),
+	\release, Pfunc({ ~release[0] / ~metronome.tempo }),
 	\sweep,  Pfunc({ ~sweep[0] }),
-	\sweep_time, Pfunc({ ~sweep_time[0] }),
+	\sweep_time, Pfunc({ ~sweep_time[0] / ~metronome.tempo }),
 	\feed_in, 2,
 	\feed_out, 3,
 	\output_channel, 10,
@@ -121,7 +124,7 @@ SynthDef(\mixer, {
 	\mod_index, Pfunc({ ~mod_index[0] }),
 	\dur, Pfunc({ ~attack[0] + ~release[0] }),
 	\osc, Pfunc({~oscServer.sendMsg("/beat", 1) })
-).play(),
+).play(~metronome, quant:1),
 Pbind(
 	\instrument, \squared_sin,
 	\note, Pfunc({ ~note[1] }, inf),
@@ -129,10 +132,10 @@ Pbind(
 	\vol,  Pfunc({ ~vol[1] }),
 	\harmonics, Pfunc({ ~harmonics[1] }),
 	\duty, Pfunc({ ~duty[1] }),
-	\attack, Pfunc({ ~attack[1] }),
-	\release, Pfunc({ ~release[1] }),
+	\attack, Pfunc({ ~attack[1] / ~metronome.tempo }),
+	\release, Pfunc({ ~release[1] / ~metronome.tempo }),
 	\sweep,  Pfunc({ ~sweep[1] }),
-	\sweep_time,  Pfunc({ ~sweep_time[1] }),
+	\sweep_time,  Pfunc({ ~sweep_time[1] / ~metronome.tempo }),
 	\feed_in, 3,
 	\feed_out, 2,
 	\output_channel, 10,
@@ -140,7 +143,7 @@ Pbind(
 	\mod_index, Pfunc({ ~mod_index[1] }),
 	\dur, Pfunc({ ~attack[1] + ~release[1] }),
 	\osc, Pfunc({ ~oscServer.sendMsg("/beat", 2) })
-).play()];
+).play(~metronome, quant:1)];
 ~osc[0].stop;
 ~osc[1].stop;
 
@@ -184,6 +187,7 @@ OSCdef.new(\control, {
 	if(msg[1] == 2 && msg[2] == 1, { ~mod_index[0] = msg[3] });
 	if(msg[1] == 2 && msg[2] == 2, { ~vol[0] = msg[3] });
 	if(msg[1] == 2 && msg[2] == 3, { ~master_volume = msg[3]; ~mixer.set(\vol, ~master_volume) });
+	if(msg[1] == 2 && msg[2] == 4, { ~metronome.tempo = msg[3] });
 	if(msg[1] == 2 && msg[2] == 5, { ~mod_index[1] = msg[3] });
 	if(msg[1] == 2 && msg[2] == 6, { ~vol[1] = msg[3] });
 	if(msg[1] == 2 && msg[2] == 7, { ~master_balance = msg[3]; ~mixer.set(\bal, ~master_balance) });

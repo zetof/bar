@@ -24,7 +24,7 @@ SynthDef(\squared_sin, {
 	var freq = (1 + detune) * note.midicps;
 	var env = EnvGen.ar(Env.perc(attack, release), doneAction:Done.freeSelf);
 	var signal;
-	if(feed_in.notNil, modulator = mod_index * In.ar(feed_in, 1));
+	if(feed_in.notNil, modulator = mod_index * InFeedback.ar(feed_in, 1));
 	signal = {
 		(1..50).sum {
 			arg i;

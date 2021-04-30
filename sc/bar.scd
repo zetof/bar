@@ -2,6 +2,9 @@
 // Wait for the server to boot before creating synth definitions and groups
 s.waitForBoot({
 
+// Include code in a routine so all synth definitions load smoothly before being instanciated
+Routine({
+
 // A SynthDef that allows to grow an original sine wave to a full blown square wave with up to 50 harmonics
 // This synth also allows to control the duty cycle of the formed square wave
 // Parameters:
@@ -83,15 +86,14 @@ SynthDef(\mixer, {
 	Out.ar(0, Pan2.ar(vol * In.ar(input_channel, 1), bal));
 }).add;
 
+// Sync point to wait for synth definitions to load
+s.sync;
+
 // Set groups and their precedence
 ~synth_group = Group.new;
 ~filter_group = Group.after(~synth_group);
 ~delay_group = Group.after(~filter_group);
 ~output_group = Group.after(~delay_group);
-});
-
-// When all dfinitions have been loaded, proceed with instanciation
-s.doWhenBooted({
 
 // Instanciate effects and mixer synths
 ~filter_synth = Synth(\filter, target:~filter_group);
@@ -220,6 +222,5 @@ OSCdef.new(\control, {
 	if(msg[1] == 3 && msg[2] == 2, { ~decay = msg[3]; ~delay_synth.set(\decay, ~decay) });
 	if(msg[1] == 3 && msg[2] == 3, { ~low_freq = msg[3]; ~delay_synth.set(\low_freq, ~low_freq) });
 	if(msg[1] == 3 && msg[2] == 4, { ~high_freq = msg[3]; ~delay_synth.set(\high_freq, ~high_freq) });
-}, '/control');
-})
+}, '/control'); }).play(AppClock); })
 )

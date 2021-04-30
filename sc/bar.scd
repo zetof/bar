@@ -1,5 +1,7 @@
-s.boot;
 (
+// Wait for the server to boot before creating synth definitions and groups
+s.waitForBoot({
+
 // A SynthDef that allows to grow an original sine wave to a full blown square wave with up to 50 harmonics
 // This synth also allows to control the duty cycle of the formed square wave
 // Parameters:
@@ -82,15 +84,19 @@ SynthDef(\mixer, {
 }).add;
 
 // Set groups and their precedence
-~synthGroup = Group.new;
-~filterGroup = Group.after(~synthGroup);
-~delayGroup = Group.after(~filterGroup);
-~outputGroup = Group.after(~delayGroup);
+~synth_group = Group.new;
+~filter_group = Group.after(~synth_group);
+~delay_group = Group.after(~filter_group);
+~output_group = Group.after(~delay_group);
+});
+
+// When all dfinitions have been loaded, proceed with instanciation
+s.doWhenBooted({
 
 // Instanciate effects and mixer synths
-~filter = Synth(\filter, target:~filterGroup);
-~delay = Synth(\delay, target:~delayGroup);
-~mixer = Synth(\mixer, target:~outputGroup);
+~filter_synth = Synth(\filter, target:~filter_group);
+~delay_synth = Synth(\delay, target:~delay_group);
+~mixer_synth = Synth(\mixer, target:~output_group);
 
 // Master metronome
 ~metronome = TempoClock.new;
@@ -98,6 +104,12 @@ SynthDef(\mixer, {
 // Default params for mixer module
 ~master_volume = 0.5;
 ~master_balance = 0;
+
+// Defaults params for delay module
+~delay = 0;
+~decay = 0;
+~low_freq = 10;
+~high_freq = 10;
 
 // Default params for the oscillator synths
 ~play = [false, false];
@@ -128,7 +140,7 @@ SynthDef(\mixer, {
 	\feed_in, 2,
 	\feed_out, 3,
 	\output_channel, 10,
-	\group, ~synthGroup,
+	\group, ~synth_group,
 	\mod_index, Pfunc({ ~mod_index[0] }),
 	\dur, Pfunc({ ~attack[0] + ~release[0] }),
 	\osc, Pfunc({~oscServer.sendMsg("/beat", 1) })
@@ -147,7 +159,7 @@ Pbind(
 	\feed_in, 3,
 	\feed_out, 2,
 	\output_channel, 10,
-	\group, ~synthGroup,
+	\group, ~synth_group,
 	\mod_index, Pfunc({ ~mod_index[1] }),
 	\dur, Pfunc({ ~attack[1] + ~release[1] }),
 	\osc, Pfunc({ ~oscServer.sendMsg("/beat", 2) })
@@ -173,35 +185,41 @@ OSCdef.new(\off, {
 // All knobs controls, split into bank effects (see LPD8 python program for more explanations)
 OSCdef.new(\control, {
 	arg msg;
-	// BANK 1 (split): note, harmonics, duty, vol
+	// BANK 1: osc 1 - note, harmonics, attack, sweep, detune, duty, release, seep time
 	if(msg[1] == 0 && msg[2] == 1, { ~note[0] = msg[3] });
-	if(msg[1] == 0 && msg[2] == 2, { ~detune[0] = msg[3] });
-	if(msg[1] == 0 && msg[2] == 3, { ~harmonics[0] = msg[3] });
-	if(msg[1] == 0 && msg[2] == 4, { ~duty[0] = msg[3] });
-	if(msg[1] == 0 && msg[2] == 5, { ~note[1] = msg[3] });
-	if(msg[1] == 0 && msg[2] == 6, { ~detune[1] = msg[3] });
-	if(msg[1] == 0 && msg[2] == 7, { ~harmonics[1] = msg[3] });
-	if(msg[1] == 0 && msg[2] == 8, { ~duty[1] = msg[3] });
-	// BANK 2 (split): attack, release, sweep, seep time
-	if(msg[1] == 1 && msg[2] == 1, { ~attack[0] = msg[3] });
-	if(msg[1] == 1 && msg[2] == 2, { ~release[0] = msg[3] });
-	if(msg[1] == 1 && msg[2] == 3, { ~sweep[0] = msg[3] });
-	if(msg[1] == 1 && msg[2] == 4, { ~sweep_time[0] = msg[3] });
-	if(msg[1] == 1 && msg[2] == 5, { ~attack[1] = msg[3] });
-	if(msg[1] == 1 && msg[2] == 6, { ~release[1] = msg[3] });
-	if(msg[1] == 1 && msg[2] == 7, { ~sweep[1] = msg[3] });
+	if(msg[1] == 0 && msg[2] == 2, { ~harmonics[0] = msg[3] });
+	if(msg[1] == 0 && msg[2] == 3, { ~attack[0] = msg[3] });
+	if(msg[1] == 0 && msg[2] == 4, { ~sweep[0] = msg[3] });
+	if(msg[1] == 0 && msg[2] == 5, { ~detune[0] = msg[3] });
+	if(msg[1] == 0 && msg[2] == 6, { ~duty[0] = msg[3] });
+	if(msg[1] == 0 && msg[2] == 7, { ~release[0] = msg[3] });
+	if(msg[1] == 0 && msg[2] == 8, { ~sweep_time[0] = msg[3] });
+
+	// BANK 2: osc 2 - note, harmonics, attack, sweep, detune, duty, release, seep time
+	if(msg[1] == 1 && msg[2] == 1, { ~note[1] = msg[3] });
+	if(msg[1] == 1 && msg[2] == 2, { ~harmonics[1] = msg[3] });
+	if(msg[1] == 1 && msg[2] == 3, { ~attack[1] = msg[3] });
+	if(msg[1] == 1 && msg[2] == 4, { ~sweep[1] = msg[3] });
+	if(msg[1] == 1 && msg[2] == 5, { ~detune[1] = msg[3] });
+	if(msg[1] == 1 && msg[2] == 6, { ~duty[1] = msg[3] });
+	if(msg[1] == 1 && msg[2] == 7, { ~release[1] = msg[3] });
 	if(msg[1] == 1 && msg[2] == 8, { ~sweep_time[1] = msg[3] });
-	// BANK 3 full): feedback, volume, master volume, master balance
+
+	// BANK 3 full): osc 1 & 2 - feedback, volume / general: master volume, master balance
 	if(msg[1] == 2 && msg[2] == 1, { ~mod_index[0] = msg[3] });
 	if(msg[1] == 2 && msg[2] == 2, { ~vol[0] = msg[3] });
-	if(msg[1] == 2 && msg[2] == 3, { ~master_volume = msg[3]; ~mixer.set(\vol, ~master_volume) });
+	if(msg[1] == 2 && msg[2] == 3, { ~master_volume = msg[3]; ~mixer_synth.set(\vol, ~master_volume) });
 	if(msg[1] == 2 && msg[2] == 4, { ~metronome.tempo = msg[3] });
 	if(msg[1] == 2 && msg[2] == 5, { ~mod_index[1] = msg[3] });
 	if(msg[1] == 2 && msg[2] == 6, { ~vol[1] = msg[3] });
-	if(msg[1] == 2 && msg[2] == 7, { ~master_balance = msg[3]; ~mixer.set(\bal, ~master_balance) });
+	if(msg[1] == 2 && msg[2] == 7, { ~master_balance = msg[3]; ~mixer_synth.set(\bal, ~master_balance) });
+
+	// BANK 4 effects):
+	//   * dlay: delay, decay, low_freq, high freq
+	if(msg[1] == 3 && msg[2] == 1, { ~delay = msg[3]; ~delay_synth.set(\delay, ~delay) });
+	if(msg[1] == 3 && msg[2] == 2, { ~decay = msg[3]; ~delay_synth.set(\decay, ~decay) });
+	if(msg[1] == 3 && msg[2] == 3, { ~low_freq = msg[3]; ~delay_synth.set(\low_freq, ~low_freq) });
+	if(msg[1] == 3 && msg[2] == 4, { ~high_freq = msg[3]; ~delay_synth.set(\high_freq, ~high_freq) });
 }, '/control');
+})
 )
-~delay.set(\delay, 0.2);
-~delay.set(\decay, 3);
-~delay.set(\low_freq, 10);
-~delay.set(\high_freq, 10000);

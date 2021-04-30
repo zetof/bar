@@ -30,7 +30,7 @@ def configure_lpd8():
     lpd8.subscribe(actions, actions.on_off, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_1)
     lpd8.subscribe(actions, actions.on_off, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_5)
 
-    # PAD 6 and PAD 2 activate bank 2 control values and ranges
+    # PAD 2 and PAD 2 activate bank 2 (oscillator 1) bank 3 (oscillator 2) control values and ranges
     lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_2, Pad.SWITCH_MODE)
     lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_6, Pad.SWITCH_MODE)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_2, Pad.OFF)
@@ -42,6 +42,11 @@ def configure_lpd8():
     lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_7, Pad.SWITCH_MODE)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_7, Pad.OFF)
     lpd8.subscribe(actions, actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_7)
+
+    # PAD 3 activates bank 4 control values and ranges
+    lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_3, Pad.SWITCH_MODE)
+    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_3, Pad.OFF)
+    lpd8.subscribe(actions, actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_3)
 
     # All knobs send control information to SuperCollider and are not sticky
     lpd8.subscribe(actions, actions.control_osc, Programs.PGM_4, LPD8.CTRL, Knobs.ALL_KNOBS)
@@ -69,8 +74,7 @@ if __name__ == '__main__':
     running = lpd8.is_running()
     if running:
         configure_osc()
-        actions.load_bank(0, 0)
-        actions.load_bank(0, 1)
+        actions.load_bank(0)
         actions.send_init()
 
     # Runs the forever loop
@@ -86,8 +90,9 @@ if __name__ == '__main__':
 
     # We clean up pads state
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_1, Pad.OFF)
-    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_5, Pad.OFF)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_2, Pad.OFF)
+    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_3, Pad.OFF)
+    lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_5, Pad.OFF)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_6, Pad.OFF)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_7, Pad.OFF)
     lpd8.pad_update()

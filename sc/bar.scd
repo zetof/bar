@@ -52,14 +52,22 @@ SynthDef(\filter, {
 	Out.ar(output_channel, In.ar(input_channel, 1));
 }).add;
 
-// A SynthDef that introduces a delay of the generated signal
+// A SynthDef that introduces a delay on the input signal
+// Delay is split through a low pass filter and a high pass filter so effect can be controlled more accurately
 // Parameters:
 //   * input_channel  : the channel number of the input signal before delaying
 //   * output_channel : the channel number of the output signal after delaying
+//   * delay          : delay time in seconds - basically the time of one echo
+//   * decay          : decay time in seconds - basically the time it takes for the sound to completely fade away
+//   * low-freq       : low frequency cutoff limit for the low pass filter
+//   * high-freq      : high frequency cutoff limit for the high pass filter
 //
 SynthDef(\delay, {
-	arg input_channel=12, output_channel=20;
-	Out.ar(output_channel, In.ar(input_channel, 1));
+	arg input_channel=12, output_channel=20, delay=0.25, decay=2, low_freq=440, high_freq=1000;
+	var sig = In.ar(input_channel, 1);
+	var low_delay = CombN.ar(LPF.ar(sig, low_freq), delay, delay, decay);
+	var high_delay = CombN.ar(HPF.ar(sig, high_freq), delay, delay, decay);
+	Out.ar(output_channel, sig + low_delay + high_delay);
 }).add;
 
 // A SynthDef that ouputs final sound and allows master level and balance controls
@@ -193,3 +201,7 @@ OSCdef.new(\control, {
 	if(msg[1] == 2 && msg[2] == 7, { ~master_balance = msg[3]; ~mixer.set(\bal, ~master_balance) });
 }, '/control');
 )
+~delay.set(\delay, 0.2);
+~delay.set(\decay, 3);
+~delay.set(\low_freq, 10);
+~delay.set(\high_freq, 10000);

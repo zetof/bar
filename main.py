@@ -18,7 +18,7 @@ def configure_lpd8():
 
     # Exit pad is PAD  (upper right)
     lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_8, Pad.PUSH_MODE)
-    lpd8.subscribe(actions, actions.exit_running, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_8)
+    lpd8.subscribe(actions.exit_running, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_8)
 
     # All actions are assigned to PGM 4 as this is the starting program on LPD8
     # PAD 5 will control oscillator 1, PAD 1 will control oscillator 2
@@ -27,29 +27,29 @@ def configure_lpd8():
     lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_5, Pad.SWITCH_MODE)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_1, Pad.ON)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_5, Pad.ON)
-    lpd8.subscribe(actions, actions.on_off, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_1)
-    lpd8.subscribe(actions, actions.on_off, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_5)
+    lpd8.subscribe(actions.on_off, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_1)
+    lpd8.subscribe(actions.on_off, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_5)
 
     # PAD 2 and PAD 2 activate bank 2 (oscillator 1) bank 3 (oscillator 2) control values and ranges
     lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_2, Pad.SWITCH_MODE)
     lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_6, Pad.SWITCH_MODE)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_2, Pad.OFF)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_6, Pad.OFF)
-    lpd8.subscribe(actions, actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_2)
-    lpd8.subscribe(actions, actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_6)
+    lpd8.subscribe(actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_2)
+    lpd8.subscribe(actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_6)
 
     # PAD 7 activates bank 3 control values and ranges
     lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_7, Pad.SWITCH_MODE)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_7, Pad.OFF)
-    lpd8.subscribe(actions, actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_7)
+    lpd8.subscribe(actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_7)
 
     # PAD 3 activates bank 4 control values and ranges
     lpd8.set_pad_mode(Programs.PGM_4, Pads.PAD_3, Pad.SWITCH_MODE)
     lpd8.set_pad_switch_state(Programs.PGM_4, Pads.PAD_3, Pad.OFF)
-    lpd8.subscribe(actions, actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_3)
+    lpd8.subscribe(actions.switch_bank, Programs.PGM_4, LPD8.NOTE_ON, Pads.PAD_3)
 
     # All knobs send control information to SuperCollider and are not sticky
-    lpd8.subscribe(actions, actions.control_osc, Programs.PGM_4, LPD8.CTRL, Knobs.ALL_KNOBS)
+    lpd8.subscribe(actions.control_osc, Programs.PGM_4, LPD8.CTRL, Knobs.ALL_KNOBS)
     lpd8.set_not_sticky_knob(Programs.PGM_4, Knobs.ALL_KNOBS)
 
     # Update pad states and start pad process

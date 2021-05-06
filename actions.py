@@ -122,8 +122,8 @@ class Actions:
         elif bank == 3:
             self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_1, 0, 0.5, is_int=False)
             self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_2, 1, 5, is_int=False)
-            self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_3, 10, 10000)
-            self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_4, 10, 10000,)
+            self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_3, 10, 10000, is_exp=True)
+            self._lpd8.set_knob_limits(Programs.PGM_4, Knobs.KNOB_4, 10, 10000, is_exp=True)
 
         # Load saved values for current bank
             for knob in Knobs.ALL_KNOBS:
